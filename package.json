@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@turf/turf": "^6.5.0",
+    "axios": "^1.3.4",
+    "nodemailer": "^6.9.1"
+  },
+  "type": "module"
+}

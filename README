@@ -1,0 +1,3 @@
+- clinicians are pinged every ~20 seconds
+- if any of them are outside there zone on any of the pings, it will send an alert email every 5 minutes (which will reduce email spam).
+- Error emails will also accumulate and send 1 unique error every 5 minutes.
