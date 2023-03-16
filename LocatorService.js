@@ -4,8 +4,16 @@ import * as turf from '@turf/turf'
 
 const EMAIL_FROM = '';
 const EMAIL_TO = '';
-const GMAIL_APP_KEY = ''; 
+const GMAIL_APP_KEY = '';
 const CLINICIANS = [1, 2, 3, 4, 5, 6];
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: EMAIL_FROM,
+        pass: GMAIL_APP_KEY
+    }
+});
 
 var cliniciansOutOfBounds = new Set();
 var cliniciansOutOfBoundsInformation = {};
@@ -50,40 +58,38 @@ function inAnyLocation(location, poly) {
 
 
 function sendOutOfBoundsEmail(clinicianNumber) {
-    let title = 'Clinician ' + clinicianNumber + ' is out of bounds!';
-    let body = 'GeoData\n' + cliniciansOutOfBoundsInformation[clinicianNumber].geoData;
-    sendEmail(title, body);
+    var mailOptions = {
+        from: EMAIL_FROM,
+        to: EMAIL_TO,
+        subject: 'Clinician ' + clinicianNumber + ' is out of bounds!',
+        text: 'GeoData\n' + cliniciansOutOfBoundsInformation[clinicianNumber].geoData,
+    };
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+            errorMessages.add('Email send failure: "' + result.error + '"');
+        } else {
+            cliniciansOutOfBounds.remove(error);
+            delete cliniciansOutOfBoundsInformation[clinicianNumber];
+            console.log('Email sent: ' + info.response);
+        }
+    });
 }
 
 function sendErrorEmail(error) {
-    let title = 'An Error occurred with the server while checking clinician locations';
-    let body = 'Error Details Below\n' + error;
-    sendEmail(title, body);
-}
-
-function sendEmail(title, body) {
-    var transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: EMAIL_FROM,
-          pass: GMAIL_APP_KEY
-        }
-      });
-      
-      var mailOptions = {
+    var mailOptions = {
         from: EMAIL_FROM,
         to: EMAIL_TO,
-        subject: title,
-        text: body
-      };
-      
-      transporter.sendMail(mailOptions, function(error, info){
+        subject: 'An Error occurred with the server while checking clinician locations',
+        text: 'Error Details Below\n' + error,
+    };
+    transporter.sendMail(mailOptions, function(error, info){
         if (error) {
-          console.log(error);
+            errorMessages.add('Email send failure: "' + result.error + '"');
         } else {
-          console.log('Email sent: ' + info.response);
+            console.log('Email sent: ' + info.response);
+            errorMessages.remove(error);
         }
-      });
+    });
 }
 
 function notifyEmails() {
